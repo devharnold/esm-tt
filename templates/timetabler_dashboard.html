@@ -5,7 +5,186 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timetabler Dashboard</title>
     <style>
-        /* Existing styles here... */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            flex: 1; /* Ensures the main content takes up available space */
+            padding: 20px;
+        }
+        h1 {
+            color: #004080;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+        button {
+            background-color: #004080;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003366;
+        }
+        footer {
+            background-color: #004080;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: relative; /* Ensures it stays below the content */
+            bottom: 0;
+            width: 100%;
+        }
+        #console-debug, .traceback, pre {
+            display: none; /* Hides debug information */
+        }
+        .approve-btn {
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve-btn:hover {
+            background-color: #218838;
+        }
+
+        .reject-btn {
+            background-color: #ffc107; /* Yellow */
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .reject-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .delete-btn {
+            background-color: #dc3545; /* Red */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .search-btn {
+            background-color: #007bff; /* Blue */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .search-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .search-container {
+            background-color: #f4f4f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #004080;
+            margin-bottom: 10px;
+        }
+
+        .search-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #004080;
+            box-shadow: 0 0 5px rgba(0, 64, 128, 0.5);
+        }
+
+        .search-btn {
+            background-color: #004080;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background-color: #003366;
+        }
+
+        .view-btn {
+            background-color: #17a2b8; /* Teal */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .view-btn:hover {
+            background-color: #138496;
+        }
     </style>
 </head>
 <body>
@@ -37,7 +216,7 @@
                 <th>Actions</th>
             </tr>
             {% for request in requests %}
-            <tr id="request-{{ request.id }}">
+            <tr>
                 <td>{{ request.id }}</td>
                 <td>{{ request.lecturer_name }}</td>
                 <td>{{ request.unit_name }}</td>
@@ -95,7 +274,7 @@
     </footer>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Add a new row to the timetable
+            // Add a new row to the table
             document.querySelectorAll('.add-row').forEach(button => {
                 button.addEventListener('click', () => {
                     const timetableId = button.getAttribute('data-timetable-id');
@@ -116,14 +295,14 @@
                 });
             });
 
-            // Delete a row from the timetable
+            // Delete a row from the table
             document.querySelectorAll('.delete-row').forEach(button => {
                 button.addEventListener('click', () => {
                     button.closest('tr').remove();
                 });
             });
 
-            // Save timetable changes
+            // Save changes to the server
             document.querySelectorAll('.save-timetable').forEach(button => {
                 button.addEventListener('click', () => {
                     const timetableId = button.getAttribute('data-timetable-id');
@@ -138,7 +317,7 @@
                         };
                     });
 
-                    // Send the updated timetable to the server
+                    // Send the updated slots to the server
                     fetch(`/timetable/update/${timetableId}`, {
                         method: 'POST',
                         headers: {
@@ -160,7 +339,7 @@
                     });
                 });
             });
-
+            
             // Handle request approval: hide buttons when approved
             document.querySelectorAll('.approve-btn').forEach(button => {
                 button.addEventListener('click', event => {
