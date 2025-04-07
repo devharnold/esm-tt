@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Timetables</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Timetables</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Lecturer Name</th>
+            <th>Unit Name</th>
+            <th>Day</th>
+            <th>Time</th>
+            <th>Room</th>
+        </tr>
+        {% for timetable in timetables %}
+        <tr>
+            <td>{{ timetable.id }}</td>
+            <td>{{ timetable.lecturer_name }}</td>
+            <td>{{ timetable.unit_name }}</td>
+            <td>{{ timetable.day }}</td>
+            <td>{{ timetable.time }}</td>
+            <td>{{ timetable.room }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

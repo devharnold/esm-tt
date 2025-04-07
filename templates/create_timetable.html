@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Timetable</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        h1 {
+            color: #004080;
+            text-align: center;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #004080;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003366;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Create Timetable</h1>
+    </header>
+    <main>
+        <form method="POST">
+            <label for="lecturer_id">Lecturer ID:</label>
+            <input type="text" id="lecturer_id" name="lecturer_id" value="{{ request.lecturer_id }}" readonly>
+
+            <label for="lecturer_name">Lecturer Name:</label>
+            <input type="text" id="lecturer_name" name="lecturer_name" value="{{ request.lecturer_name }}" readonly>
+
+            <label for="unit_name">Unit Name:</label>
+            <input type="text" id="unit_name" name="unit_name" value="{{ request.unit_name }}" readonly>
+
+            <label for="day">Day:</label>
+            <select id="day" name="day" required>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+            </select>
+
+            <label for="time">Time:</label>
+            <input type="text" id="time" name="time" placeholder="e.g., 10:00 AM - 12:00 PM" required>
+
+            <label for="room">Room:</label>
+            <input type="text" id="room" name="room" placeholder="e.g., Room 101" required>
+
+            <button type="submit">Create Timetable</button>
+        </form>
+    </main>
+</body>
+</html>

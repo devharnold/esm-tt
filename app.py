@@ -11,7 +11,7 @@ app = Flask(__name__)
 DATABASE = 'projo.db'
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect('projo.db')  # Ensure this matches your database file
     conn.row_factory = sqlite3.Row  # Allows accessing columns by name
     return conn
 
@@ -98,9 +98,9 @@ def select_role():
 @app.route('/request/create', methods=['GET', 'POST'])
 def create_request():
     if request.method == 'POST':
+        # Retrieve form data
         lecturer_id = request.form.get('lecturer_id')
         lecturer_name = request.form.get('lecturer_name')
-        course_id = request.form.get('course_id')  # Retrieve course_id from the form
         room_available = request.form.get('room_available')
         unit_name = request.form.get('unit_name')
         student_count = request.form.get('student_count')
@@ -108,16 +108,19 @@ def create_request():
         preferred_times = ','.join(request.form.getlist('preferred_times'))
         additional_notes = request.form.get('additional_notes', '')
 
-        # Validate that course_id is provided
-        if not course_id:
-            return "Course ID is required", 400
+        # Validate that all required fields are provided
+        if not lecturer_id or not lecturer_name or not unit_name:
+            return "All fields are required", 400
 
+        # Generate a unique request ID
         request_id = str(uuid.uuid4())[:8]
+
+        # Insert the request into the timetable_requests table
         with get_db_connection() as conn:
             conn.execute('''
-                INSERT INTO timetable_requests (id, lecturer_id, lecturer_name, course_id, room_available, unit_name, student_count, preferred_days, preferred_times, additional_notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (request_id, lecturer_id, lecturer_name, course_id, room_available, unit_name, student_count, preferred_days, preferred_times, additional_notes))
+                INSERT INTO timetable_requests (id, lecturer_id, lecturer_name, room_available, unit_name, student_count, preferred_days, preferred_times, additional_notes, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            ''', (request_id, lecturer_id, lecturer_name, room_available, unit_name, student_count, preferred_days, preferred_times, additional_notes))
             conn.commit()
 
         return redirect(f'/dashboard/lecturer/{lecturer_id}')
@@ -127,49 +130,25 @@ def create_request():
 @app.route('/dashboard/lecturer/<lecturer_id>')
 def lecturer_dashboard(lecturer_id):
     with get_db_connection() as conn:
+        # Fetch all requests for the lecturer
         requests = conn.execute('''
-            SELECT * FROM timetable_requests WHERE lecturer_id = ?
+            SELECT id, unit_name, status, created_at
+            FROM timetable_requests
+            WHERE lecturer_id = ?
         ''', (lecturer_id,)).fetchall()
+
     return render_template('lecturer_dashboard.html', requests=requests)
 
 @app.route('/dashboard/timetabler')
 def timetabler_dashboard():
     with get_db_connection() as conn:
-        #requests = conn.execute('SELECT * FROM timetable_requests').fetchall()
-        #requests = conn.execute('''
-        #    SELECT r.*, u.name as lecturer_name, c.name as course_name
-        #    FROM timetable_requests r
-        #    JOIN users u ON r.lecturer_id = u.id
-        #    JOIN courses c ON r.course_id = c.id
-        #''').fetchall()
+        # Fetch all requests
         requests = conn.execute('''
-            SELECT r.id, r.lecturer_id, c.course_id, r.unit_name
-            FROM timetable_requests r
-            LEFT JOIN courses c ON r.course_id = c.course_id
-            WHERE r.status = 'pending'
+            SELECT id, lecturer_name, unit_name, status
+            FROM timetable_requests
         ''').fetchall()
-        timetables = conn.execute('SELECT * FROM timetables').fetchall()
 
-    # Parse slots JSON for each timetable
-    parsed_timetables = []
-    for timetable in timetables:
-        slots = timetable['slots']
-        try:
-            import json
-            # Ensure slots is a valid JSON string
-            slots_parsed = json.loads(slots) if isinstance(slots, str) else []
-        except (json.JSONDecodeError, TypeError):
-            slots_parsed = []  # Handle invalid JSON gracefully
-
-        parsed_timetables.append({
-            "id": timetable["id"],
-            "request_id": timetable["request_id"],
-            "slots": slots_parsed,
-            "status": timetable["status"],
-            "created_at": timetable["created_at"]
-        })
-
-    return render_template('timetabler_dashboard.html', requests=requests, timetables=parsed_timetables)
+    return render_template('timetabler_dashboard.html', requests=requests)
 
 @app.route('/timetables/public')
 def view_all_timetables():
@@ -228,76 +207,40 @@ def student_dashboard(student_id):
         ''', (student_id,)).fetchall()
     return render_template('student_dashboard.html', timetables=timetables)
 
-@app.route('/timetable/create/<request_id>', methods=['POST'])
+@app.route('/timetable/create/<request_id>', methods=['GET', 'POST'])
 def create_timetable(request_id):
-    data = request.get_json(force=True)
-
-    lecturer_name = data.get('lecturer_name')
-    student_count = data.get('student_count')
-    slots = data.get('slots')
-
-    if not lecturer_name or not isinstance(student_count, int):
-        return jsonify({"error": "Lecturer name and valid student count required."}), 400
-    if not slots or not isinstance(slots, list):
-        return jsonify({"error": "Slots should be a list of objects."}), 400
-
-    slots_json = json.dumps(slots)
-    timetable_id = str(uuid.uuid4())[:8]
-
     with get_db_connection() as conn:
-        conn.execute('''
-            INSERT INTO timetables (id, request_id, lecturer_name, student_count, slots, status)
-            VALUES (?, ?, ?, ?, ?, 'finalized')
-        ''', (timetable_id, request_id, lecturer_name, student_count, slots_json))
-        conn.commit()
+        # Fetch the request details to pre-fill the timetable form
+        lecturer_request = conn.execute('''
+            SELECT id, lecturer_id, lecturer_name, unit_name, room_available, student_count,
+                   preferred_days, preferred_times, additional_notes
+            FROM timetable_requests
+            WHERE id = ?
+        ''', (request_id,)).fetchone()
 
-    return jsonify({"message": "Timetable created", "timetable_id": timetable_id})
+        if not lecturer_request:
+            return "Request not found", 404
 
+        if request.method == 'POST':  # Handle form submission
+            # Retrieve form data for the timetable
+            day = request.form.get('day')
+            time = request.form.get('time')
+            room = request.form.get('room')
 
-#@app.route('/timetable/create/<request_id>', methods=['POST'])
-#def create_timetable(request_id):
-#    # Check if the request is JSON
-#    if request.is_json:
-#        data = request.json
-#    else:
-#        # Fallback to form data if JSON is not provided
-#        data = request.form
-#
-#    #Retrievr lecturer name from the data
-#    lecturer_name = data.get('lecturer_name')
-#    if not lecturer_name:
-#        return jsonify({"error": "Lecturer name is required. Please provide valid name in json format."}), 400
-#    
-#    #Retrieve student count from the data
-#    student_count = data.get('student_count')
-#    if not student_count:
-#        return jsonify({"error": "Student count is needed. Please provide a valid number."}), 400
-#
-#    # Retrieve the slots from the data
-#    slots = data.get('slots')  # JSON string of timetable slots
-#    if not slots:
-#        return jsonify({"error": "Slots are required. Please provide valid slots in JSON format."}), 400
-#
-#    try:
-#        # Validate that slots is a valid JSON string
-#        import json
-#        slots_parsed = json.loads(slots)  # Parse the JSON string
-#        if not isinstance(slots_parsed, list):  # Ensure it's a list
-#            raise ValueError("Slots must be a list of objects.")
-#        slots = json.dumps(slots_parsed)  # Ensure it's stored as a JSON string
-#    except (json.JSONDecodeError, ValueError) as e:
-#        return jsonify({"error": f"Invalid JSON format for slots: {str(e)}"}), 400
-#
-#    timetable_id = str(uuid.uuid4())[:8]
-#
-#    with get_db_connection() as conn:
-#        conn.execute('''
-#            INSERT INTO timetables (id, lecturer_name, request_id, slots, student_count, status)
-#            VALUES (?, ?, ?, ?, ?, 'finalized')
-#        ''', (timetable_id, lecturer_name, request_id, student_count, slots))
-#        conn.commit()
-#
-#    return jsonify({"message": "Timetable created successfully", "timetable_id": timetable_id})
+            # Generate a unique timetable ID
+            timetable_id = str(uuid.uuid4())[:8]
+
+            # Insert the timetable into the database
+            conn.execute('''
+                INSERT INTO timetables (id, lecturer_id, lecturer_name, unit_name, day, time, room)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (timetable_id, lecturer_request['lecturer_id'], lecturer_request['lecturer_name'],
+                  lecturer_request['unit_name'], day, time, room))
+            conn.commit()
+
+            return redirect('/dashboard/timetabler')
+
+    return render_template('create_timetable.html', request=lecturer_request)
 
 @app.route('/timetable/update/<timetable_id>', methods=['POST'])
 def update_timetable(timetable_id):
@@ -326,26 +269,30 @@ def update_timetable(timetable_id):
 
     return jsonify({"success": True, "message": "Timetable updated successfully."})
 
-@app.route('/timetable/approve/<request_id>', methods=['POST'])
+@app.route('/request/approve/<request_id>', methods=['POST'])
 def approve_request(request_id):
     with get_db_connection() as conn:
+        # Update the status of the request to 'approved'
         conn.execute('''
             UPDATE timetable_requests
             SET status = 'approved'
             WHERE id = ?
         ''', (request_id,))
         conn.commit()
-    return redirect('/dashboard/timetabler')
 
-@app.route('/timetable/reject/<request_id>', methods=['POST'])
+    return {"success": True}, 200
+
+@app.route('/request/reject/<request_id>', methods=['POST'])
 def reject_request(request_id):
     with get_db_connection() as conn:
+        # Update the status of the request to 'rejected'
         conn.execute('''
             UPDATE timetable_requests
             SET status = 'rejected'
             WHERE id = ?
         ''', (request_id,))
         conn.commit()
+
     return redirect('/dashboard/timetabler')
 
 @app.route('/timetable/delete/<request_id>', methods=['POST'])
@@ -356,38 +303,30 @@ def delete_request(request_id):
         conn.commit()
     return redirect('/dashboard/timetabler')
 
-#@app.route('/timetable/delete/<request_id>', methods=['POST'])
-#def delete_request(request_id):
-#    with get_db_connection() as conn:
-#        conn.execute('''
-#            DELETE FROM timetable_requests
-#            WHERE id = ?
-#        ''', (request_id,))
-#        conn.commit()
-#    return redirect('/dashboard/timetabler')
-
 @app.route('/dashboard/timetabler/view/<request_id>')
 def view_lecturer_request(request_id):
     with get_db_connection() as conn:
-        # Fetch the lecturer's request details
-        #request = conn.execute('''
-        #    SELECT lecturer_id, lecturer_name, course, unit_name, room_availability, number_of_students,
-        #           preferred_days, preferred_times, additional_notes, status
-        #    FROM timetable_requests
-        #    WHERE id = ?
-        #''', (request_id,)).fetchone()
+        # Fetch the specific request details
         request = conn.execute('''
-            SELECT r.id, r.lecturer_id, course.course_id, r.unit_name
-            FROM timetable_requests r
-            LEFT JOIN courses course ON r.course_id = course.course_id
-            WHERE r.status = 'pending'
-        ''').fetchall()
-
+            SELECT id, lecturer_id, lecturer_name, unit_name, room_available, student_count,
+                   preferred_days, preferred_times, additional_notes, status, created_at
+            FROM timetable_requests
+            WHERE id = ?
+        ''', (request_id,)).fetchone()
 
     if not request:
         return "Request not found", 404
 
     return render_template('view_lecturer_request.html', request=request)
 
+@app.route('/timetables')
+def view_timetables():
+    with get_db_connection() as conn:
+        timetables = conn.execute('''
+            SELECT * FROM timetables
+        ''').fetchall()
+
+    return render_template('view_timetables.html', timetables=timetables)
+
 if __name__ == '__main__':
-    app.run(debug=False)  # Disable debug mode
+    app.run(debug=True)
