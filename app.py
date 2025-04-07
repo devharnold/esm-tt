@@ -8,7 +8,7 @@ import logging
 app = Flask(__name__)
 
 # Database initialization
-DATABASE = 'projo.db'
+DATABASE = 'esmailtimes.db'
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -62,9 +62,11 @@ def init_db():
             CREATE TABLE IF NOT EXISTS timetables (
                 id TEXT PRIMARY KEY,
                 lecturer_name TEXT NOT NULL,
+                unit_name TEXT NOT NULL,
+                day TEXT NOT NULL,
+                times TEXT NOT NULL,
                 request_id INTEGER NOT NULL,
                 slots TEXT,
-                student_count INTEGER NOT NULL,
                 status TEXT DEFAULT 'draft',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 modified_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -216,6 +218,11 @@ def search_lecturer_requests():
         ''', (lecturer_id,)).fetchall()
 
     return render_template('timetabler_dashboard.html', requests=requests, lecturer_id=lecturer_id)
+
+@app.view('/dashboard/timetabler/view/<int:id>')
+def view_request(id):
+    request_details = get_request_details(id)
+    return render_template('request_details.html', request=request_details)
 
 @app.route('/dashboard/student/<student_id>')
 def student_dashboard(student_id):
