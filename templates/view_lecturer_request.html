@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Lecturer Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        h1 {
+            color: #004080;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lecturer Request Details</h1>
+    </header>
+    <main>
+        <h2>Request Details</h2>
+        <table>
+            <tr>
+                <th>Lecturer ID</th>
+                <td>{{ request.lecturer_id }}</td>
+            </tr>
+            <tr>
+                <th>Lecturer Name</th>
+                <td>{{ request.lecturer_name }}</td>
+            </tr>
+            <tr>
+                <th>Course</th>
+                <td>{{ request.course }}</td>
+            </tr>
+            <tr>
+                <th>Unit Name</th>
+                <td>{{ request.unit_name }}</td>
+            </tr>
+            <tr>
+                <th>Room Availability</th>
+                <td>{{ request.room_availability }}</td>
+            </tr>
+            <tr>
+                <th>Number of Students</th>
+                <td>{{ request.number_of_students }}</td>
+            </tr>
+            <tr>
+                <th>Preferred Days</th>
+                <td>{{ request.preferred_days }}</td>
+            </tr>
+            <tr>
+                <th>Preferred Times</th>
+                <td>{{ request.preferred_times }}</td>
+            </tr>
+            <tr>
+                <th>Additional Notes</th>
+                <td>{{ request.additional_notes }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ request.status }}</td>
+            </tr>
+        </table>
+    </main>
+</body>
+</html>

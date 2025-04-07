@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetabler Requests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        h1 {
+            color: #004080;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+        button {
+            background-color: #004080;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003366;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Timetabler Requests</h1>
+    </header>
+    <main>
+        <h2>All Requests</h2>
+        <table>
+            <tr>
+                <th>Request ID</th>
+                <th>Lecturer ID</th>
+                <th>Lecturer Name</th>
+                <th>Unit Name</th>
+                <th>Room Available</th>
+                <th>Student Count</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request.id }}</td>
+                <td>{{ request.lecturer_id }}</td>
+                <td>{{ request.lecturer_name }}</td>
+                <td>{{ request.unit_name }}</td>
+                <td>{{ request.room_available }}</td>
+                <td>{{ request.student_count }}</td>
+                <td>{{ request.status }}</td>
+                <td>
+                    <form action="/timetable/create/{{ request.id }}" method="POST">
+                        <button type="submit">Create Timetable</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </main>
+</body>
+</html>

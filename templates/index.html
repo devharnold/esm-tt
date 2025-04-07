@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable Management</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7fa;
+      color: #333;
+    }
+
+    header {
+      background-color: #003366;
+      color: white;
+      padding: 20px 40px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    footer {
+      background-color: #003366;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    main {
+      padding: 40px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .card {
+      background-color: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      margin-bottom: 40px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #003366;
+      font-size: 22px;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 4px;
+      font-weight: 600;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background-color: #003366;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+
+    .response-box {
+      background: #eef2f7;
+      padding: 15px;
+      border-left: 4px solid #003366;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Timetable Management System</h1>
+  </header>
+
+  <main>
+    <!-- Create Request (Lecturer) -->
+    <div class="card">
+      <h2>Create Timetable Request (Lecturer)</h2>
+      <label>Lecturer ID</label>
+      <input type="number" id="lecturer_id" value="1">
+
+      <label>Lecturer Name</label>
+      <input type="text" id="lecturer_name" name="lecturer_name" value="">
+
+      <label>Course ID</label>
+      <input type="number" id="course_id" value="101">
+
+      <label>Unit Name</label>
+      <input type="text" id="unit_name" value="Intro to CS">
+
+      <label>Student Count</label>
+      <input type="number" id="student_count" value="50">
+
+      <label>Preferred Days (comma-separated)</label>
+      <input type="text" id="preferred_days" value="Monday,Wednesday">
+
+      <label>Preferred Times (comma-separated)</label>
+      <input type="text" id="preferred_times" value="10:00,14:00">
+
+      <label>Additional Notes</label>
+      <textarea id="notes" rows="4"></textarea>
+
+      <button onclick="createRequest()">Submit Request</button>
+      <div id="request_response" class="response-box"></div>
+    </div>
+
+    <!-- View Requests -->
+    <div class="card">
+      <h2>View Timetable Requests</h2>
+      <label>User ID</label>
+      <input type="number" id="view_user_id" value="1">
+
+      <label>Role</label>
+      <select id="view_user_role">
+        <option value="lecturer">Lecturer</option>
+        <option value="timetabler">Timetabler</option>
+      </select>
+
+      <button onclick="viewRequests()">Load Requests</button>
+      <div id="requests_list" class="response-box"></div>
+    </div>
+
+    <!-- Student Timetable View -->
+    <div class="card">
+      <h2>Student: View Published Timetable</h2>
+      <label>Course ID</label>
+      <input type="number" id="student_course_id" value="101">
+
+      <button onclick="viewStudentTimetable()">View Timetable</button>
+      <div id="student_timetable" class="response-box"></div>
+    </div>
+
+    <!-- Timetabler: Create Timetable -->
+    <div class="card">
+      <h2>Create Timetable</h2>
+      <form id="create-timetable-form">
+        <label for="request-id">Request ID:</label>
+        <input type="text" id="request-id" name="request_id" required>
+        <label for="slots">Timetable Slots (JSON):</label>
+        <textarea id="slots" name="slots" required></textarea>
+        <button type="submit">Create Timetable</button>
+      </form>
+    </div>
+
+    <!-- Lecturer: View Timetable -->
+    <div class="card">
+      <h2>View Timetable</h2>
+      <form id="view-timetable-form">
+        <label for="timetable-id">Timetable ID:</label>
+        <input type="text" id="timetable-id" name="timetable_id" required>
+        <button type="submit">View Timetable</button>
+      </form>
+    </div>
+
+    <!-- Student: View Timetable -->
+    <div class="card">
+      <h2>View Timetable for Student</h2>
+      <form id="view-student-timetable-form">
+        <label for="student-id">Student ID:</label>
+        <input type="text" id="student-id" name="student_id" required>
+        <button type="submit">View Timetable</button>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    &copy; University Timetabling System. All Rights Reserved.
+  </footer>
+
+  <script>
+    async function createRequest() {
+      const payload = {
+        lecturer_id: parseInt(document.getElementById("lecturer_id").value),
+        lecturer_name: document.getElementById("lecturer_name").value,
+        course_id: parseInt(document.getElementById("course_id").value),
+        unit_name: document.getElementById("unit_name").value,
+        student_count: parseInt(document.getElementById("student_count").value),
+        preferred_days: document.getElementById("preferred_days").value.split(','),
+        preferred_times: document.getElementById("preferred_times").value.split(','),
+        additional_notes: document.getElementById("notes").value
+      };
+      const res = await fetch("/request/create", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      document.getElementById("request_response").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function viewRequests() {
+      const userId = document.getElementById("view_user_id").value;
+      const role = document.getElementById("view_user_role").value;
+      const res = await fetch(`/request/list?user_id=${userId}&role=${role}`);
+      const data = await res.json();
+      document.getElementById("requests_list").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function viewStudentTimetable() {
+      const courseId = document.getElementById("student_course_id").value;
+      const res = await fetch(`/timetable/student/${courseId}`);
+      const data = await res.json();
+      document.getElementById("student_timetable").innerText = JSON.stringify(data, null, 2);
+    }
+
+    // Example: Handle timetable creation
+    document.getElementById('create-timetable-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const requestId = document.getElementById('request-id').value;
+      const slots = document.getElementById('slots').value;
+
+      const response = await fetch(`/timetable/create/${requestId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots })
+      });
+
+      const result = await response.json();
+      alert(result.message || 'Error creating timetable');
+    });
+
+    // Example: Handle timetable viewing
+    document.getElementById('view-timetable-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const timetableId = document.getElementById('timetable-id').value;
+
+      const response = await fetch(`/timetable/view/${timetableId}`);
+      const timetable = await response.json();
+
+      if (timetable.error) {
+        alert(timetable.error);
+      } else {
+        alert(`Timetable: ${JSON.stringify(timetable)}`);
+      }
+    });
+
+    // Example: Handle student timetable viewing
+    document.getElementById('view-student-timetable-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const studentId = document.getElementById('student-id').value;
+
+      const response = await fetch(`/timetable/student/${studentId}`);
+      const timetables = await response.json();
+
+      if (timetables.error) {
+        alert(timetables.error);
+      } else {
+        alert(`Timetables: ${JSON.stringify(timetables)}`);
+      }
+    });
+  </script>
+
+</body>
+</html>

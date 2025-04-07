@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        h1 {
+            color: #004080;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #004080;
+            color: white;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Student Dashboard</h1>
+    </header>
+    <main>
+        <h2>Your Timetables</h2>
+        <table>
+            <tr>
+                <th>Timetable ID</th>
+                <th>Slots</th>
+                <th>Status</th>
+                <th>Created At</th>
+            </tr>
+            {% for timetable in timetables %}
+            <tr>
+                <td>{{ timetable.id }}</td>
+                <td>{{ timetable.slots }}</td>
+                <td>{{ timetable.status }}</td>
+                <td>{{ timetable.created_at }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </main>
+    <footer>
+        &copy; 2025 University Portal. All Rights Reserved.
+    </footer>
+</body>
+</html>
