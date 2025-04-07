@@ -219,7 +219,7 @@ def search_lecturer_requests():
 
     return render_template('timetabler_dashboard.html', requests=requests, lecturer_id=lecturer_id)
 
-@app.view('/dashboard/timetabler/view/<int:id>')
+@app.route('/dashboard/timetabler/view/<int:id>')
 def view_request(id):
     request_details = get_request_details(id)
     return render_template('request_details.html', request=request_details)

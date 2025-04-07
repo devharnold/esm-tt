@@ -339,20 +339,19 @@
                     });
                 });
             });
-            
-            // Handle request approval: hide buttons when approved
+            // Handle request approval
             document.querySelectorAll('.approve-btn').forEach(button => {
                 button.addEventListener('click', event => {
                     event.preventDefault(); // Prevent the form from submitting immediately
                     const requestId = button.closest('form').action.split('/').pop();
-                    const row = document.getElementById(`request-${requestId}`);
 
                     // Hide buttons after approval
+                    const row = button.closest('tr');  // Get the row element where the request data is displayed
                     row.querySelectorAll('form').forEach(form => {
                         form.style.display = 'none';
                     });
-
-                    // Optionally update the status or make an AJAX request to the server
+                
+                    // Send the approval request to the server
                     fetch(`/timetable/approve/${requestId}`, { method: 'POST' })
                         .then(response => response.json())
                         .then(data => {
