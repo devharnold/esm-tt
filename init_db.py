@@ -8,13 +8,13 @@ class TimetableRequest(db.Model):
     lecturer_name = db.Column(db.String(50), nullable=False)
     unit_name = db.Column(db.String(100), nullable=False)
     room_available = db.Column(db.String(50), nullable=False)
-    course_id = db.Column(db.Integer(50), nullable=False)
+    course_id = db.Column(db.Integer, nullable=False)
     student_count = db.Column(db.Integer, nullable=False)
-    preferred_days = db.COlumn(db.Text, nullable=False)
+    preferred_days = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(50), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-with app.app_context():
-    db.create_all()
-    init_db()
-    print("Database initialized successfully!")
+from app import app, init_db
+
+# Initialize the database
+init_db()

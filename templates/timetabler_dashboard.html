@@ -226,12 +226,47 @@
         .delete-btn:hover {
             background-color: #d32f2f;
         }
+
+        .send-btn {
+            background-color: #007bff; /* Blue */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .role-btn {
+            background-color: #004080;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .role-btn:hover {
+            background-color: #003366;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Time Tabler Dashboard</h1>
     </header>
+    <form action="/select-role" method="GET" style="text-align: right; margin: 20px;">
+        <button type="submit" class="role-btn">Go to Select Role</button>
+    </form>
     <main>
         <!-- Styled Search Form -->
         <div class="search-container">
@@ -285,175 +320,62 @@
             {% endfor %}
         </table>
 
-        <h2>Timetables</h2>
-        {% for timetable in timetables %}
-            <h3>Timetable ID: {{ timetable.id }}</h3>
-            <p>Status: {{ timetable.status }}</p>
-            <p>Created At: {{ timetable.created_at }}</p>
-
-            <table id="timetable-{{ timetable.id }}">
-                <thead>
-                    <tr>
-                        <th>Day</th>
-                        <th>Time</th>
-                        <th>Room</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for slot in timetable.slots %}
-                        <tr>
-                            <td contenteditable="true">{{ slot.day }}</td>
-                            <td contenteditable="true">{{ slot.time }}</td>
-                            <td contenteditable="true">{{ slot.room }}</td>
-                            <td>
-                                <button class="delete-row">Delete</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
+        <!-- Requests Section -->
+        <section>
+            <h2>Requests</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Lecturer Name</th>
+                    <th>Unit Name</th>
+                    <th>Status</th>
+                </tr>
+                {% for request in requests %}
+                <tr>
+                    <td>{{ request.id }}</td>
+                    <td>{{ request.lecturer_name }}</td>
+                    <td>{{ request.unit_name }}</td>
+                    <td>{{ request.status }}</td>
+                </tr>
+                {% endfor %}
             </table>
-            <button class="add-row" data-timetable-id="{{ timetable.id }}">Add Row</button>
-            <button class="save-timetable" data-timetable-id="{{ timetable.id }}">Save Changes</button>
-        {% endfor %}
+        </section>
 
-       
+        <!-- Timetables Section -->
+        <section>
+            <h2>Timetables</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Lecturer Name</th>
+                    <th>Unit Name</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Room</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                {% for timetable in timetables %}
+                <tr>
+                    <td>{{ timetable.id }}</td>
+                    <td>{{ timetable.lecturer_name }}</td>
+                    <td>{{ timetable.unit_name }}</td>
+                    <td>{{ timetable.day }}</td>
+                    <td>{{ timetable.time }}</td>
+                    <td>{{ timetable.room }}</td>
+                    <td>{{ timetable.status }}</td>
+                    <td>
+                        <form method="POST" action="/timetable/send/{{ timetable.id }}" style="display: inline;">
+                            <button type="submit" class="send-btn">Send Timetable</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+    </main>
     <footer>
         &copy; 2025 University Portal. All Rights Reserved.
     </footer>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Add a new row to the table
-            document.querySelectorAll('.add-row').forEach(button => {
-                button.addEventListener('click', () => {
-                    const timetableId = button.getAttribute('data-timetable-id');
-                    const table = document.querySelector(`#timetable-${timetableId} tbody`);
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true"></td>
-                        <td contenteditable="true"></td>
-                        <td><button class="delete-row">Delete</button></td>
-                    `;
-                    table.appendChild(newRow);
-
-                    // Add delete functionality to the new row
-                    newRow.querySelector('.delete-row').addEventListener('click', () => {
-                        newRow.remove();
-                    });
-                });
-            });
-
-            // Delete a row from the table
-            document.querySelectorAll('.delete-row').forEach(button => {
-                button.addEventListener('click', () => {
-                    button.closest('tr').remove();
-                });
-            });
-
-            // Save changes to the server
-            document.querySelectorAll('.save-timetable').forEach(button => {
-                button.addEventListener('click', () => {
-                    const timetableId = button.getAttribute('data-timetable-id');
-                    const table = document.querySelector(`#timetable-${timetableId}`);
-                    const rows = table.querySelectorAll('tbody tr');
-                    const slots = Array.from(rows).map(row => {
-                        const cells = row.querySelectorAll('td');
-                        return {
-                            day: cells[0].innerText.trim(),
-                            time: cells[1].innerText.trim(),
-                            room: cells[2].innerText.trim()
-                        };
-                    });
-
-                    // Send the updated slots to the server
-                    fetch(`/timetable/update/${timetableId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ slots })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Timetable updated successfully!');
-                        } else {
-                            alert('Failed to update timetable: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while updating the timetable.');
-                    });
-                });
-            });
-            
-            // Handle request approval: hide buttons when approved
-            document.querySelectorAll('.approve-btn').forEach(button => {
-                button.addEventListener('click', event => {
-                    event.preventDefault(); // Prevent the form from submitting immediately
-                    const requestId = button.closest('form').action.split('/').pop();
-
-                    // Make an AJAX request to approve the request
-                    fetch(`/request/approve/${requestId}`, { method: 'POST' })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                alert('Request approved!');
-                                // Optionally update the status in the UI
-                                const row = document.getElementById(`request-${requestId}`);
-                                row.querySelector('td:nth-child(4)').innerText = 'approved';
-                            } else {
-                                alert('Failed to approve request');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred while approving the request.');
-                        });
-                });
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Handle request approval
-            document.querySelectorAll('.approve-btn').forEach(button => {
-                button.addEventListener('click', event => {
-                    event.preventDefault(); // Prevent the form from submitting immediately
-                    const requestId = button.closest('form').action.split('/').pop();
-
-                    // Make an AJAX request to approve the request
-                    fetch(`/request/approve/${requestId}`, { method: 'POST' })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                alert('Request approved!');
-                                // Update the status in the UI
-                                const row = document.getElementById(`request-${requestId}`);
-                                row.querySelector('td:nth-child(4)').innerText = 'approved';
-                            } else {
-                                alert('Failed to approve request');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred while approving the request.');
-                        });
-                });
-            });
-        });
-    </script>
 </body>
 </html>

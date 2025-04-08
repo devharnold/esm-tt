@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
     <title>Lecturer Dashboard</title>
     <style>
         body {
@@ -74,12 +74,45 @@
         button:hover {
             background-color: #003366;
         }
+        .share-btn {
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .share-btn:hover {
+            background-color: #218838;
+        }
+        .role-btn {
+            background-color: #004080;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .role-btn:hover {
+            background-color: #003366;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Lecturer Dashboard</h1>
     </header>
+    <form action="/select-role" method="GET" style="text-align: right; margin: 20px;">
+        <button type="submit" class="role-btn">Go to Select Role</button>
+    </form>
     <main>
         <h2>Your Requests</h2>
         <table>
@@ -95,6 +128,34 @@
                 <td>{{ request.unit_name }}</td>
                 <td>{{ request.status }}</td>
                 <td>{{ request.created_at }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Your Timetables</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Unit Name</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Room</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for timetable in timetables %}
+            <tr>
+                <td>{{ timetable.id }}</td>
+                <td>{{ timetable.unit_name }}</td>
+                <td>{{ timetable.day }}</td>
+                <td>{{ timetable.time }}</td>
+                <td>{{ timetable.room }}</td>
+                <td>{{ timetable.status }}</td>
+                <td>
+                    <form method="POST" action="/timetable/share/{{ timetable.id }}" style="display: inline;">
+                        <button type="submit" class="share-btn">Share with Students</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </table>
