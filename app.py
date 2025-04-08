@@ -134,14 +134,21 @@ def create_request():
 @app.route('/dashboard/lecturer/<lecturer_id>')
 def lecturer_dashboard(lecturer_id):
     with get_db_connection() as conn:
-        # Fetch timetables sent to the lecturer
+        # Fetch all timetables associated with the lecturer
         timetables = conn.execute('''
             SELECT id, unit_name, day, time, room, status
             FROM timetables
-            WHERE lecturer_id = ? AND status = 'sent'
+            WHERE lecturer_id = ? AND status IN ('sent', 'shared', 'draft')
         ''', (lecturer_id,)).fetchall()
 
-    return render_template('lecturer_dashboard.html', timetables=timetables)
+        # Fetch all requests made by the lecturer
+        requests = conn.execute('''
+            SELECT id, unit_name, status, created_at
+            FROM timetable_requests
+            WHERE lecturer_id = ?
+        ''', (lecturer_id,)).fetchall()
+
+    return render_template('lecturer_dashboard.html', timetables=timetables, requests=requests)
 
 @app.route('/dashboard/timetabler')
 def timetabler_dashboard():
@@ -209,14 +216,14 @@ def search_lecturer_requests():
 @app.route('/dashboard/student/<student_id>')
 def student_dashboard(student_id):
     with get_db_connection() as conn:
-        # Fetch timetables shared with the student
+        # Fetch all timetables with status 'shared'
         timetables = conn.execute('''
-            SELECT t.id, t.unit_name, t.day, t.time, t.room, t.status
-            FROM timetables t
-            JOIN enrollments e ON t.request_id = e.course_id
-            WHERE e.user_id = ? AND t.status = 'shared'
-        ''', (student_id,)).fetchall()
+            SELECT id, unit_name, day, time, room, status
+            FROM timetables
+            WHERE status = 'shared'
+        ''').fetchall()
 
+    # Render the student dashboard with shared timetables
     return render_template('student_dashboard.html', timetables=timetables)
 
 @app.route('/timetable/create/<request_id>', methods=['GET', 'POST'])
@@ -292,7 +299,8 @@ def approve_request(request_id):
         ''', (request_id,))
         conn.commit()
 
-    return {"success": True}, 200
+    # Redirect back to the Timetabler Dashboard
+    return redirect('/dashboard/timetabler')
 
 @app.route('/request/reject/<request_id>', methods=['POST'])
 def reject_request(request_id):
@@ -356,6 +364,18 @@ def send_timetable(timetable_id):
 @app.route('/timetable/share/<timetable_id>', methods=['POST'])
 def share_timetable(timetable_id):
     with get_db_connection() as conn:
+        # Fetch the lecturer_id associated with the timetable
+        timetable = conn.execute('''
+            SELECT lecturer_id
+            FROM timetables
+            WHERE id = ?
+        ''', (timetable_id,)).fetchone()
+
+        if not timetable:
+            return "Timetable not found", 404
+
+        lecturer_id = timetable['lecturer_id']
+
         # Update the timetable status to 'shared'
         conn.execute('''
             UPDATE timetables
@@ -364,7 +384,8 @@ def share_timetable(timetable_id):
         ''', (timetable_id,))
         conn.commit()
 
-    return redirect('/dashboard/lecturer/<lecturer_id>')
+    # Redirect back to the lecturer's dashboard
+    return redirect(f'/dashboard/lecturer/{lecturer_id}')
 
 if __name__ == '__main__':
     app.run(debug=True)

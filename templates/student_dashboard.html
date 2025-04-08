@@ -17,13 +17,6 @@
             padding: 20px;
             text-align: center;
         }
-        main {
-            padding: 20px;
-        }
-        h1 {
-            color: #004080;
-            text-align: center;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -74,43 +67,32 @@
         <button type="submit" class="role-btn">Go to Select Role</button>
     </form>
     <main>
-        <h2>Your Timetables</h2>
-        <table>
-            <tr>
-                <th>Timetable ID</th>
-                <th>Slots</th>
-                <th>Status</th>
-                <th>Created At</th>
-            </tr>
-            {% for timetable in timetables %}
-            <tr>
-                <td>{{ timetable.id }}</td>
-                <td>{{ timetable.slots }}</td>
-                <td>{{ timetable.status }}</td>
-                <td>{{ timetable.created_at }}</td>
-            </tr>
-            {% endfor %}
-        </table>
         <h2>Shared Timetables</h2>
         <table>
-            <tr>
-                <th>ID</th>
-                <th>Unit Name</th>
-                <th>Day</th>
-                <th>Time</th>
-                <th>Room</th>
-                <th>Status</th>
-            </tr>
-            {% for timetable in timetables %}
-            <tr>
-                <td>{{ timetable.id }}</td>
-                <td>{{ timetable.unit_name }}</td>
-                <td>{{ timetable.day }}</td>
-                <td>{{ timetable.time }}</td>
-                <td>{{ timetable.room }}</td>
-                <td>{{ timetable.status }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Unit Name</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Room</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if timetables %}
+                    {% for timetable in timetables %}
+                    <tr>
+                        <td>{{ timetable.unit_name }}</td>
+                        <td>{{ timetable.day }}</td>
+                        <td>{{ timetable.time }}</td>
+                        <td>{{ timetable.room }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4">No timetables shared yet.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
         </table>
     </main>
     <footer>
