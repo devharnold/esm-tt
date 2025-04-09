@@ -82,6 +82,7 @@ init_db()
 def home():
     return redirect('/select-role')
 
+#Route to facilitate the `select-role` function, it fetches then posts data
 @app.route('/select-role', methods=['GET', 'POST'])
 def select_role():
     if request.method == 'POST':
@@ -89,16 +90,17 @@ def select_role():
         user_id = request.form.get('user_id')  # User ID for Lecturer or Student
 
         if role == 'lecturer':
-            return redirect(f'/dashboard/lecturer/{user_id}')
+            return redirect(f'/dashboard/lecturer/{user_id}') # redirects to the lecturer dashboard
         elif role == 'timetabler':
-            return redirect('/dashboard/timetabler')
+            return redirect('/dashboard/timetabler') #redirects to the timetabler dashboard
         elif role == 'student':
-            return redirect(f'/dashboard/student/{user_id}')
+            return redirect(f'/dashboard/student/{user_id}') # redirects to the student dashboard
         else:
             return "Invalid role selected", 400
 
     return render_template('select_role.html')
 
+#API Route to handle timetable creation request
 @app.route('/request/create', methods=['GET', 'POST'])
 def create_request():
     if request.method == 'POST':
@@ -129,8 +131,11 @@ def create_request():
 
         return redirect(f'/dashboard/lecturer/{lecturer_id}')
 
+    #renders the create_request page
     return render_template('create_request.html')
 
+
+# API route to redirect to the lecturer dashboard, it will fetch all details including the timetable
 @app.route('/dashboard/lecturer/<lecturer_id>')
 def lecturer_dashboard(lecturer_id):
     with get_db_connection() as conn:
@@ -148,8 +153,10 @@ def lecturer_dashboard(lecturer_id):
             WHERE lecturer_id = ?
         ''', (lecturer_id,)).fetchall()
 
+    #renders the frontend template
     return render_template('lecturer_dashboard.html', timetables=timetables, requests=requests)
 
+#API route to redirect to the timetabler's dashboard
 @app.route('/dashboard/timetabler')
 def timetabler_dashboard():
     with get_db_connection() as conn:
@@ -165,6 +172,7 @@ def timetabler_dashboard():
             FROM timetables
         ''').fetchall()
 
+    #renders the timetabler dashboard's page
     return render_template('timetabler_dashboard.html', requests=requests, timetables=timetables)
 
 @app.route('/timetables/public')
@@ -257,13 +265,16 @@ def create_timetable(request_id):
                   lecturer_request['unit_name'], request_id, day, time, room, lecturer_request['student_count']))
             conn.commit()
 
+            #render the timetabler's dashboard
             return redirect('/dashboard/timetabler')
-
+        
+    #render the create timetable page
     return render_template('create_timetable.html', request=lecturer_request)
 
+# API route to render the update button, perform actions on it
 @app.route('/timetable/update/<timetable_id>', methods=['POST'])
 def update_timetable(timetable_id):
-    if not request.is_json:
+    if not request.is_json: #first fetch details in json format
         return jsonify({"success": False, "error": "Invalid request format. JSON expected."}), 400
 
     data = request.json
@@ -286,8 +297,10 @@ def update_timetable(timetable_id):
         ''', (slots_json, timetable_id))
         conn.commit()
 
+    # return a success message
     return jsonify({"success": True, "message": "Timetable updated successfully."})
 
+#API route to render the approve button
 @app.route('/request/approve/<request_id>', methods=['POST'])
 def approve_request(request_id):
     with get_db_connection() as conn:
@@ -302,6 +315,7 @@ def approve_request(request_id):
     # Redirect back to the Timetabler Dashboard
     return redirect('/dashboard/timetabler')
 
+#API route to render the reject request button
 @app.route('/request/reject/<request_id>', methods=['POST'])
 def reject_request(request_id):
     with get_db_connection() as conn:
@@ -313,16 +327,20 @@ def reject_request(request_id):
         ''', (request_id,))
         conn.commit()
 
+    #redirects to the timetabler dashboard
     return redirect('/dashboard/timetabler')
 
+#API route to render the delete button
 @app.route('/timetable/delete/<request_id>', methods=['POST'])
 def delete_request(request_id):
     with get_db_connection() as conn:
         conn.execute('DELETE FROM timetables WHERE request_id = ?', (request_id,))
         conn.execute('DELETE FROM timetable_requests WHERE id = ?', (request_id,))
         conn.commit()
+    #redirects to the timetabler dashboard
     return redirect('/dashboard/timetabler')
 
+#API route to view the lecturer's requests within the timetabler's dashboard
 @app.route('/dashboard/timetabler/view/<request_id>')
 def view_lecturer_request(request_id):
     with get_db_connection() as conn:
@@ -337,6 +355,7 @@ def view_lecturer_request(request_id):
     if not request:
         return "Request not found", 404
 
+    #redirect to the lecturer's request page
     return render_template('view_lecturer_request.html', request=request)
 
 @app.route('/timetables')
@@ -346,8 +365,10 @@ def view_timetables():
             SELECT * FROM timetables
         ''').fetchall()
 
+    #redirects to the timetable views page
     return render_template('view_timetables.html', timetables=timetables)
 
+#API route to render the send button
 @app.route('/timetable/send/<timetable_id>', methods=['POST'])
 def send_timetable(timetable_id):
     with get_db_connection() as conn:
@@ -359,8 +380,10 @@ def send_timetable(timetable_id):
         ''', (timetable_id,))
         conn.commit()
 
+    #redirects to the timetabler's dashboard
     return redirect('/dashboard/timetabler')
 
+# API route to render the share page
 @app.route('/timetable/share/<timetable_id>', methods=['POST'])
 def share_timetable(timetable_id):
     with get_db_connection() as conn:

@@ -2,6 +2,7 @@ from app import app, db, init_db
 import uuid
 from datetime import datetime
 
+#Timetable request model
 class TimetableRequest(db.Model):
     id = db.Column(db.String(8), primary_key=True, default=lambda: str(uuid.uuid4())[:8])
     lecturer_id = db.Column(db.String(8), nullable=False)
